@@ -22,6 +22,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Portland_Fiscal_Zoning_Analysis.py" />
+    <Compile Include="Services\RDDService.py" />
     <Compile Include="StatisticsCalculator.py" />
   </ItemGroup>
   <ItemGroup>

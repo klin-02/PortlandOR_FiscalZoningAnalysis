@@ -26,11 +26,10 @@ def CleanUpLotData(lots_gdf) -> gp.GeoDataFrame:
 
     lots_gdf = lots_gdf[["ORTAXLOT", "YEARBUILT", "PROP_CODE", "TOTALVAL", "GIS_ACRES", "geometry"]]
 
-    #keep only residential, commercial, industrial, and multifamily land uses, respectively
+    #keep only residential, commercial, and multifamily land uses, respectively
     prop_codes = [
-        "101", '102', '109', '121', '131', '151', '171', '191',
+        "101", '102', '109', '121', '122', '131', '151', '171', '191',
         '201', '202', '211', '212', '221', '222', '231', '271',
-        '301', '303', '311', '313', '321', '323',
         '701', '702', '707', '711', '712', '717', '721', '722', '727', '731', '737']
 
     lots_gdf = lots_gdf[lots_gdf["PROP_CODE"].isin(prop_codes)]
@@ -44,12 +43,6 @@ def CleanUpLotData(lots_gdf) -> gp.GeoDataFrame:
         }
 
     lots_gdf = lots_gdf.dissolve(by="ORTAXLOT", aggfunc=agg_func)
-    lots_gdf = lots_gdf.drop(["ORTAXLOT"], axis=1)
-
-    #why not
-    lots_gdf.plot()
-    plt.show()
-
     return lots_gdf
 
 def CleanUpZoningData(zoning_gdf) -> gp.GeoDataFrame:
