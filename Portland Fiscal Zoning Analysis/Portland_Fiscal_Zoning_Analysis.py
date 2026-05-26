@@ -1,24 +1,33 @@
 from matplotlib import pyplot as plt
+import matplotlib
 import geopandas as gp
 
 def main():
     import StatisticsCalculator as sc
 
-    lots_p = r"Taxlots_(Public).geojson"
-    zoning_p = r"Zoning.zip"
+    highways_gdf = __Prep__(r"Resources\highways.geojson", 2913)
+    redlining_gdf = __Prep__(r"Resources\redlining.geojson", 2913)
+    lots_gdf = __Prep__(r"Resources\Taxlots_(Public).geojson", 2913)
+    zoning_gdf = __Prep__(r"Resources\Zoning.zip", 2913)
 
-    lots_gdf = gp.read_file(lots_p)
-    zoning_gdf = gp.read_file(zoning_p)
+    lots_gdf = __CleanLotData__(lots_gdf)
+    zoning_gdf = __CleanZoningData__(zoning_gdf)
 
-    lots_gdf = lots_gdf.to_crs(epsg=2913)
-    zoning_gdf = zoning_gdf.to_crs(2913)
+    sc.GeoRDDAnalysis(highways_gdf, redlining_gdf, lots_gdf, zoning_gdf)
 
-    lots_gdf = CleanUpLotData(lots_gdf)
-    zoning_gdf = CleanUpZoningData(zoning_gdf)
+'''
+Preprocessing
+'''
+def __Prep__(path, crs) -> gp.GeoDataFrame:
+    gdf = gp.read_file(path)
+    gdf = gdf.to_crs(epsg=crs)
 
-    sc.GeoRDDAnalysis(lots_gdf, zoning_gdf)
+    return gdf
 
-def CleanUpLotData(lots_gdf) -> gp.GeoDataFrame:
+'''
+Data filtering
+'''
+def __CleanLotData__(lots_gdf) -> gp.GeoDataFrame:
     lots_gdf = gp.GeoDataFrame(lots_gdf)
 
     #get lots within city limits
@@ -36,7 +45,7 @@ def CleanUpLotData(lots_gdf) -> gp.GeoDataFrame:
 
     #remove unusually small apartment lots
     agg_func = {
-        "YEARBUILT": "first",
+        "YEARBUILT": "max",
         "PROP_CODE": "first",
         "TOTALVAL": "sum",
         "GIS_ACRES": "sum"
@@ -45,7 +54,7 @@ def CleanUpLotData(lots_gdf) -> gp.GeoDataFrame:
     lots_gdf = lots_gdf.dissolve(by="ORTAXLOT", aggfunc=agg_func)
     return lots_gdf
 
-def CleanUpZoningData(zoning_gdf) -> gp.GeoDataFrame:
+def __CleanZoningData__(zoning_gdf) -> gp.GeoDataFrame:
     zoning_gdf = gp.GeoDataFrame(zoning_gdf)
 
     #get zones within city limits
@@ -55,4 +64,5 @@ def CleanUpZoningData(zoning_gdf) -> gp.GeoDataFrame:
     return zoning_gdf
 
 if __name__ == "__main__":
+    matplotlib.use("qt5agg",force=True)
     main()

@@ -26,10 +26,13 @@
     <Compile Include="StatisticsCalculator.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Taxlots_%28Public%29.geojson" />
-    <Content Include="Zoning.zip" />
+    <Content Include="Resources\highways.geojson" />
+    <Content Include="Resources\redlining.geojson" />
+    <Content Include="Resources\Taxlots_%28Public%29.geojson" />
+    <Content Include="Resources\Zoning.zip" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Resources\" />
     <Folder Include="Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

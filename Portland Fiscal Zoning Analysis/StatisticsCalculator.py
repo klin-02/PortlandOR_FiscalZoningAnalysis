@@ -6,9 +6,11 @@ from scipy.spatial.distance import mahalanobis
 from scipy.stats import chi2
 
 
-def GeoRDDAnalysis(lots_gdf, zoning_gdf):
+def GeoRDDAnalysis(highways_gdf, redlining_gdf, lots_gdf, zoning_gdf):
     import Services.RDDService as rs
 
+    highways_gdf = gp.GeoDataFrame(highways_gdf)
+    redlining_gdf = gp.GeoDataFrame(redlining_gdf)
     lots_gdf = gp.GeoDataFrame(lots_gdf)
     zoning_gdf = gp.GeoDataFrame(zoning_gdf)
 
@@ -21,22 +23,32 @@ def GeoRDDAnalysis(lots_gdf, zoning_gdf):
     highd_lots = lots_tup[0]
     lowd_lots = lots_tup[1]
 
-    highd_lots = __CalcTMVPerAcre__(highd_lots)
-    lowd_lots = __CalcTMVPerAcre__(lowd_lots)
-
-    highd_lots = __RemoveOutliers__(highd_lots)
-    lowd_lots = __RemoveOutliers__(lowd_lots)
+    highd_lots = __IndependentProcessor__(highd_lots)
+    lowd_lots = __IndependentProcessor__(lowd_lots)
 
     lots_gdf = pd.concat([highd_lots, lowd_lots])
+    lots_gdf = lots_gdf.drop(["index_right"], axis=1)
+
+    lots_gdf = __CalcPlacebos__(lots_gdf, highways_gdf, redlining_gdf)
 
     lots_gdf = gp.GeoDataFrame(lots_gdf)
 
-    '''
-    lots_gdf.plot(x="distance to border (mi)", y="total market value/acre", kind="scatter")
-    plt.show()
-    '''
-
+    #actual
     rs.Fit(lots_gdf, x_label="distance to border (mi)", y_label="total market value/acre")
+
+    #covars
+    #rs.Fit(lots_gdf, x_label="distance to border (mi)", y_label="YEARBUILT")
+
+    #placebos
+    rs.Fit(lots_gdf, x_label="distance to border (mi)", y_label="distance to redlined border (mi)")
+    rs.Fit(lots_gdf, x_label="distance to border (mi)", y_label="distance to highway (mi)")
+
+def __IndependentProcessor__(gdf) -> gp.GeoDataFrame:
+    gdf = __CalcTMVPerAcre__(gdf)
+    gdf = __RemoveOutliers__(gdf)
+    gdf = __CalcCovariates__(gdf)
+
+    return gdf
 
 '''
 Takes in zoning polygons and unions them 
@@ -44,10 +56,8 @@ Based on if they are high density or not
 Returns tuple of (highd_zones, lowd_polygons)
 '''
 def __JoinZones__(zoning_gdf) -> tuple:
-    zoning_gdf = gp.GeoDataFrame(zoning_gdf)
-
     highd_codes = ["RMP", "RM1", "RM2", "RM3", 
-                   "RM4", "RX", "CM1", "CM2"
+                   "RM4", "RX", "CM1", "CM2",
                    "CM3", "CE", "CX", "CR"]
     lowd_codes = ["RF", "R20", "R10", "R7",
                    "R5", "R2.5"]
@@ -65,10 +75,6 @@ Calculate distance from Euclidean/non-euclidean Zoning border
 Create the continuous running var for the GeoRDD analysis
 '''
 def __DistFromBorder__(lots_gdf, highd_gdf, lowd_gdf) -> tuple:
-    lots_gdf = gp.GeoDataFrame(lots_gdf)
-    highd_gdf = gp.GeoDataFrame(highd_gdf)
-    lowd_gdf = gp.GeoDataFrame(lowd_gdf)
-
     lots_gdf = lots_gdf.set_geometry(lots_gdf.centroid)
 
     highd_lots = lots_gdf.sjoin(highd_gdf)
@@ -87,8 +93,6 @@ def __DistFromBorder__(lots_gdf, highd_gdf, lowd_gdf) -> tuple:
     return (highd_lots, lowd_lots)
 
 def __CalcTMVPerAcre__(lots_gdf) -> gp.GeoDataFrame:
-    lots_gdf = gp.GeoDataFrame(lots_gdf)
-
     lots_gdf["total market value/acre"] = lots_gdf["TOTALVAL"] / lots_gdf["GIS_ACRES"]
     return lots_gdf
 
@@ -97,11 +101,9 @@ Use Mahanalobis Distance to remove outliers from the data
 Apply independently to control/treatment
 Outliers in this data are generally just Areal Unit Problems
 '''
-def __RemoveOutliers__(lots_gdf):
-    lots_gdf = gp.GeoDataFrame(lots_gdf)
-
+def __RemoveOutliers__(gdf):
     #only include x and y var
-    data = lots_gdf[["distance to border (mi)", "total market value/acre"]].values
+    data = gdf[["distance to border (mi)", "total market value/acre"]].values
 
     mean = np.mean(data, axis=0)
 
@@ -113,26 +115,43 @@ def __RemoveOutliers__(lots_gdf):
         distances.append(mahalanobis(row, mean, inv_covm))
     
     threshold = np.sqrt(chi2.ppf(0.975, df=2))
-    lots_gdf = lots_gdf[distances < threshold]
+    gdf = gdf[distances < threshold]
 
-    '''
-    Q1 = np.percentile(lots_gdf["total market value/acre"], 25)
-    Q3 = np.percentile(lots_gdf["total market value/acre"], 75)
-    IQR = Q3 - Q1
+    return gdf
 
-    lower = Q1 - 1.5 * IQR
-    upper = Q3 + 1.5 * IQR
+'''
+Check confounding, preestablished x vars
+In this method, I check year built
+Checked independently per zone
+'''
+def __CalcCovariates__(gdf) -> gp.GeoDataFrame:
+    nonzero_gdf = gdf[gdf["YEARBUILT"] != 0]
 
-    lots_gdf = lots_gdf[lots_gdf["total market value/acre"] < upper]
-    lots_gdf = lots_gdf[lots_gdf["total market value/acre"] > lower]
-    '''
+    #replace 0 values with the median of the area
+    median = nonzero_gdf["YEARBUILT"].median()   
+    gdf["YEARBUILT"] = gdf["YEARBUILT"].replace(0, median)
 
+    return gdf
+
+'''
+Calc Placebo values to help ensure that only ONE var is causing treatment
+I analyze dist to a number of agents of division, redlining & highways
+to see if zoning follows segregated boundaries
+Assumes that lots_gdf geometries are centroids
+'''
+def __CalcPlacebos__(lots_gdf, highways_gdf, redlining_gdf):
+    #initial processing
+    h_linestring = highways_gdf.union_all()
+
+    redline_areas = ["C", "D"]
+    redlined = redlining_gdf[redlining_gdf["holc_grade"].isin(redline_areas)]
+    r_poly = redlined.union_all()
+
+    lots_gdf["distance to redlined border (mi)"] = lots_gdf.distance(r_poly.boundary) * 0.00018939
+
+    lots_gdf["distance to highway (mi)"] = lots_gdf.distance(h_linestring) * 0.00018939
     return lots_gdf
 
-'''
-Calculate some variables that could affect the result
-Helps make results more statistically valid/relevant
-In this method, I calculate percent pavement area 
-and tree canopy cover for 1 km cells across Portland
-'''
-#def __CalcCovariates__(lots_gdf) -> gp.GeoDataFrame:
+def __PlotScatter__(gdf, x_label, y_label):
+    gdf.plot(x=x_label, y=y_label, kind="scatter")
+    plt.show()
