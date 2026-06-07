@@ -34,17 +34,17 @@ def GeoRDDAnalysis(highways_gdf, redlining_gdf, lots_gdf, zoning_gdf):
     lots_gdf = gp.GeoDataFrame(lots_gdf)
 
     #actual
-    rs.Fit(lots_gdf, x_label="distance to border (mi)", y_label="total market value/acre")
+    rs.Fit(lots_gdf, x_label="distance to border (mi)", y_label="total value/acre")
 
     #covars
-    #rs.Fit(lots_gdf, x_label="distance to border (mi)", y_label="YEARBUILT")
+    rs.Fit(lots_gdf, x_label="distance to border (mi)", y_label="YEARBUILT")
 
     #placebos
     rs.Fit(lots_gdf, x_label="distance to border (mi)", y_label="distance to redlined border (mi)")
     rs.Fit(lots_gdf, x_label="distance to border (mi)", y_label="distance to highway (mi)")
 
 def __IndependentProcessor__(gdf) -> gp.GeoDataFrame:
-    gdf = __CalcTMVPerAcre__(gdf)
+    gdf = __CalcTVPerAcre__(gdf)
     gdf = __RemoveOutliers__(gdf)
     gdf = __CalcCovariates__(gdf)
 
@@ -92,12 +92,12 @@ def __DistFromBorder__(lots_gdf, highd_gdf, lowd_gdf) -> tuple:
 
     return (highd_lots, lowd_lots)
 
-def __CalcTMVPerAcre__(lots_gdf) -> gp.GeoDataFrame:
-    lots_gdf["total market value/acre"] = lots_gdf["TOTALVAL"] / lots_gdf["GIS_ACRES"]
+def __CalcTVPerAcre__(lots_gdf) -> gp.GeoDataFrame:
+    lots_gdf["total value/acre"] = lots_gdf["TOTALVAL"] / lots_gdf["GIS_ACRES"]
     return lots_gdf
 
 '''
-Use Mahanalobis Distance to remove outliers from the data
+Use Mahalanobis Distance to remove outliers from the data
 Apply independently to control/treatment
 Outliers in this data are generally just Areal Unit Problems
 '''

@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
 import matplotlib
 import geopandas as gp
+from shapely.geometry import MultiPolygon
 
 def main():
     import StatisticsCalculator as sc
@@ -9,6 +10,7 @@ def main():
     redlining_gdf = __Prep__(r"Resources\redlining.geojson", 2913)
     lots_gdf = __Prep__(r"Resources\Taxlots_(Public).geojson", 2913)
     zoning_gdf = __Prep__(r"Resources\Zoning.zip", 2913)
+    
 
     lots_gdf = __CleanLotData__(lots_gdf)
     zoning_gdf = __CleanZoningData__(zoning_gdf)
@@ -33,8 +35,6 @@ def __CleanLotData__(lots_gdf) -> gp.GeoDataFrame:
     #get lots within city limits
     lots_gdf = lots_gdf[lots_gdf["SITECITY"] == "PORTLAND"]
 
-    lots_gdf = lots_gdf[["ORTAXLOT", "YEARBUILT", "PROP_CODE", "TOTALVAL", "GIS_ACRES", "geometry"]]
-
     #keep only residential, commercial, and multifamily land uses, respectively
     prop_codes = [
         "101", '102', '109', '121', '122', '131', '151', '171', '191',
@@ -42,7 +42,20 @@ def __CleanLotData__(lots_gdf) -> gp.GeoDataFrame:
         '701', '702', '707', '711', '712', '717', '721', '722', '727', '731', '737']
 
     lots_gdf = lots_gdf[lots_gdf["PROP_CODE"].isin(prop_codes)]
+    
+    '''
+    #get portland lots real quick (need this data to scrape)
+    from shapely.geometry.polygon import Polygon
+    from shapely.geometry.multipolygon import MultiPolygon
 
+    lots_gdf = lots_gdf[["PRIMACCNUM", "geometry"]]
+    lots_gdf.geometry = [MultiPolygon([f]) if isinstance(f, Polygon)
+        else f for f in lots_gdf.geometry]
+    lots_gdf.to_file("Output\\Processed_PortlandLots_2026.geojson", driver="GeoJSON")
+    '''
+    
+    lots_gdf = lots_gdf[["ORTAXLOT", "YEARBUILT", "PROP_CODE", "TOTALVAL", "GIS_ACRES", "geometry"]]
+    
     #remove unusually small apartment lots
     agg_func = {
         "YEARBUILT": "max",

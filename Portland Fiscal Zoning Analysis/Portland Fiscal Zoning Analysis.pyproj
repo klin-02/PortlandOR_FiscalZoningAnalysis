@@ -32,6 +32,7 @@
     <Content Include="Resources\Zoning.zip" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Output\" />
     <Folder Include="Resources\" />
     <Folder Include="Services\" />
   </ItemGroup>
