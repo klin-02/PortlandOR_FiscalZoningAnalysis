@@ -2,15 +2,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>a0377676-8d74-466b-8720-2b51e9423fd6</ProjectGuid>
+    <ProjectGuid>889e4b7f-fb2c-4cc9-ad61-29fb6b28f0c8</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Portland_Fiscal_Zoning_Analysis.py</StartupFile>
+    <StartupFile>Portland_Analysis.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>Portland Fiscal Zoning Analysis</Name>
-    <RootNamespace>Portland Fiscal Zoning Analysis</RootNamespace>
+    <Name>Portland Analysis</Name>
+    <RootNamespace>Portland Analysis</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,26 +21,31 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Portland_Fiscal_Zoning_Analysis.py" />
-    <Compile Include="Services\RDDService.py" />
+    <Compile Include="Portland_Analysis.py" />
+    <Compile Include="Services\DiscontService.py" />
     <Compile Include="StatisticsCalculator.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Resources\highways.geojson" />
-    <Content Include="Resources\redlining.geojson" />
-    <Content Include="Resources\Taxlots_%28Public%29.geojson" />
-    <Content Include="Resources\Zoning.zip" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Output\" />
     <Folder Include="Resources\" />
     <Folder Include="Services\" />
+    <Folder Include="Services\__pycache__\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\2018-2022_PortlandTaxlotAssessments.geojson" />
+    <Content Include="Resources\Building_Footprints_-8229304965479720636.zip" />
+    <Content Include="Resources\highways.geojson" />
+    <Content Include="Resources\Neighborhoods.geojson" />
+    <Content Include="Resources\redlining.geojson" />
+    <Content Include="Resources\Taxlots_%28Public%29.geojson" />
+    <Content Include="Resources\Vacant_and_Developed_Land_2022.geojson" />
+    <Content Include="Resources\Zoning.zip" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
        Visual Studio and specify your pre- and post-build commands in
        the BeforeBuild and AfterBuild targets below. -->
-  <!--<Target Name="CoreCompile" />-->
+  <Target Name="CoreCompile" />
   <Target Name="BeforeBuild">
   </Target>
   <Target Name="AfterBuild">

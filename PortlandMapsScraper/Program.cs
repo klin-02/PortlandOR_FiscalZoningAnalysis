@@ -3,7 +3,7 @@ using System.Text;
 using Newtonsoft.Json;
 using NetTopologySuite.Features;
 using PortlandMapsScraper;
-using System;
+using System.Runtime.InteropServices;
 
 internal static class Program
 {
@@ -33,8 +33,8 @@ internal static class Program
 
     private static async Task Serialize(List<Feature> features)
     {
-        string outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "2021-2022_PortlandTaxlotAssessments.geojson");
+        //have to write to documents since .net is trash on this
+        string outputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "2018-2022_PortlandTaxlotAssessments.geojson");
         JsonSerializer serializer = GeoJsonSerializer.Create();
 
         FeatureCollection collection = new FeatureCollection();
@@ -49,6 +49,5 @@ internal static class Program
         serializer.Serialize(jsonTextWriter, collection);
         await File.AppendAllTextAsync(outputPath, stringWriter.ToString(), Encoding.UTF8);
         await stringWriter.FlushAsync();
-
     }
 }

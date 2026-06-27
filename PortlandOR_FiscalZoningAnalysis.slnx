@@ -1,6 +1,4 @@
 <Solution>
-  <Project Path="Portland Fiscal Zoning Analysis/Portland Fiscal Zoning Analysis.pyproj" Type="888888a0-9f3d-457c-b088-3a5042f75d52" Id="a0377676-8d74-466b-8720-2b51e9423fd6">
-    <Build Project="false" />
-  </Project>
+  <Project Path="Portland Analysis/Portland Analysis.pyproj" Type="888888a0-9f3d-457c-b088-3a5042f75d52" Id="889e4b7f-fb2c-4cc9-ad61-29fb6b28f0c8" />
   <Project Path="PortlandMapsScraper/PortlandMapsScraper.csproj" Id="1c1120c1-33d7-4c4e-b558-9006097a1350" />
 </Solution>
