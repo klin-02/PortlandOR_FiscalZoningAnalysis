@@ -6,7 +6,7 @@ from pandas import concat
 import pyproj
 
 def main():
-    import StatisticsCalculator as sc
+    import StatCalculator as sc
 
     highways_gdf = _Prep_(r"Resources\highways.geojson", crs=2913)
     redlining_gdf = _Prep_(r"Resources\redlining.geojson", crs=2913)
@@ -23,12 +23,12 @@ def main():
     footprints_gdf = _Prep_(r"Resources\Building_Footprints_-8229304965479720636.zip", crs=2913)
     neighborhoods_gdf = _Prep_(r"Resources\Neighborhoods.geojson", crs=2913)
     
-    #lots_gdf = _CleanLotData_(lots_gdf)
+    lots_gdf = _CleanLotData_(lots_gdf)
     zoning_gdf = _CleanZoningData_(zoning_gdf)
     historics_gdf = _CleanHistoricsData_(historics_gdf, development_2018, development_2022)
 
     sc.DiffInDiscAnalysis(historics_gdf, footprints_gdf, neighborhoods_gdf, zoning_gdf)
-    #sc.GeoRDDAnalysis(highways_gdf, redlining_gdf, lots_gdf, zoning_gdf)
+    sc.GeoRDDAnalysis(highways_gdf, redlining_gdf, lots_gdf, zoning_gdf)
 
 '''
 Preprocessing

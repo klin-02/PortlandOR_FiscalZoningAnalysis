@@ -22,8 +22,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Portland_Analysis.py" />
-    <Compile Include="Services\DiscontService.py" />
-    <Compile Include="StatisticsCalculator.py" />
+    <Compile Include="Services\BaseService.py" />
+    <Compile Include="Services\DiDService.py" />
+    <Compile Include="Services\RDDService.py" />
+    <Compile Include="StatCalculator.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Output\" />
