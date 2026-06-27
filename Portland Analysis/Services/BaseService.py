@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import rdrobust as rr
+from pandas import concat
 
 class BaseService(ABC):
     def __init__(self, data, x_label, y_label):
@@ -19,6 +20,19 @@ class BaseService(ABC):
     @abstractmethod
     def _BandwidthSensitivity_(self, multiplier, h, rho):
         raise NotImplementedError
+
+    @abstractmethod
+    def _FalseCutoff_(self, h, multiplier):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _CloseObservations_(self, h, removal_percentage):
+        removal_percentage = abs(removal_percentage)
+        removal_bw = h * removal_percentage
+
+        df1 = self.data[self.data[self.x_label] > removal_bw]
+        df2 = self.data[self.data[self.x_label] < removal_bw * -1]
+        self.data = concat([df1, df2])
 
     @abstractmethod
     def _RunModel_(self, c, h, rho, title):

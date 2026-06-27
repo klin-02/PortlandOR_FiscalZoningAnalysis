@@ -88,15 +88,13 @@ class RDDService(bs):
         self._RunModel_(c=c, h=None, rho=None, title=f"zoning law & {self.y_label} w/false cutoff at {c}")
 
     def _CloseObservations_(self, h, removal_percentage):
-        removal_percentage = abs(removal_percentage)
-        removal_bw = h * removal_percentage
-
-        df1 = self.data[self.data[self.x_label] > removal_bw]
-        df2 = self.data[self.data[self.x_label] < removal_bw * -1]
-        d = concat([df1, df2])
+        original_data = self.data
+        
+        super()._CloseObservations_(h, removal_percentage)
 
         #recalc new bandwidth
-        self._RunModel_(d, c=0, h=None, rho=None, title=f"zoning law & {self.y_label} w/percent removed {removal_percentage}")
+        self._RunModel_(c=0, h=None, rho=None, title=f"zoning law & {self.y_label} w/percent removed {removal_percentage}")
+        self.data = original_data
 
     def _RunModel_(self, c, h, rho, title):
         result = rr.rdrobust(

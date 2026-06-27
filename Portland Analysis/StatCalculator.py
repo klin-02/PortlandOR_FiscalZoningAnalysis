@@ -46,12 +46,9 @@ def GeoRDDAnalysis(highways_gdf, redlining_gdf, lots_gdf, zoning_gdf):
     placebo2_rdd = rs(lots_gdf, x_label="distance to border (mi)", y_label="distance to highway (mi)")
     placebo2_rdd.Fit()
 
-    print("")
-
 def _RDDIndependentPrep_(gdf) -> gp.GeoDataFrame:
     gdf = _RemoveOutliers_(gdf)
     gdf = _CalcCovariates_(gdf)
-
     return gdf
 
 '''
